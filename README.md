@@ -8,12 +8,12 @@
 ## Future Plans
 * Secure all api interactions
 * Implement separate user/channel dbs
-..* Create Interaction for separate user/channel dbs
+  * Create Interaction for separate user/channel dbs
 * Implement soft delete functionality for messages/channels/users
 * Add more query option searching
-..* offset
-..* searching
-..* etc
+  * offset
+  * searching
+  * etc
 * Look into matching JSON API practices
 * Record slack reactions
 * Keep full history of edited messages
