@@ -1,0 +1,7 @@
+#config
+.env
+.ftpconfig
+node_modules
+examples
+logs
+Gulpfile.js

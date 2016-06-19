@@ -1,0 +1,33 @@
+{
+  "name": "nsabot_api",
+  "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "description": "Rest API interaction with recorded slack data",
+  "main": "index.js",
+  "keywords": [
+    "koa",
+    "slack",
+    "ayy",
+    "lmao"
+  ],
+  "author": "John Miller",
+  "license": "MIT",
+  "dependencies": {
+    "co-body": "4.2.0",
+    "co-monk": "~1.0.0",
+    "koa": "^1.2.0",
+    "koa-bodyparser": "^2.2.0",
+    "koa-logger": "^1.3.0",
+    "koa-router": "^5.4.0",
+    "mongodb": "^1.4.40",
+    "monk": "~1.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "~1.0.17",
+    "gulp-nodemon": "^2.1.0",
+    "gulp": "^3.9.1"
+  }
+}
