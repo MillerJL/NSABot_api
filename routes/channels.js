@@ -6,9 +6,10 @@ var channels  = require('../models/channels')
 
 router
   .get('/:id?', function* (next) {
-    var results = yield channels.find({
-      channel: this.params.id
-    });
+    var findBy = {}
+    if(this.params.id) findBy._id = this.params.id
+
+    var results = yield channels.find(findBy);
     this.body = yield results;
 
     yield next;

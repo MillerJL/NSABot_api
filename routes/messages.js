@@ -71,9 +71,12 @@ router
     yield next;
   })
   .get('/:id?', function* (next) {
-    var results = yield messages.find({
-      _id: this.params.id
-    }, {
+    var findBy = {}
+    if(this.params.id) findBy._id = this.params.id
+
+    var results = yield messages.find(
+      findBy
+    , {
       limit: this.query.limit
     });
 
