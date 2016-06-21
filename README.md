@@ -18,4 +18,5 @@
 * Record slack reactions
 * Keep full history of edited messages
 * Clean up/modularize code
+* ES7
 * Lots more
