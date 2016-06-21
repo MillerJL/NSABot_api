@@ -18,22 +18,18 @@ app.use(function* (next) {
 })
 
 app.use(logger())
-   .use(bodyParser())
-
+app.use(bodyParser())
 
 var messages = require('./routes/messages')
 var channels = require('./routes/channels')
 var users = require('./routes/users')
 
-
 router.use('/api/v1/messages', messages.routes())
 router.use('/api/v1/channels', channels.routes())
 router.use('/api/v1/users', users.routes())
 
-
 app.use(router.routes())
 app.use(router.allowedMethods())
-
 
 app.listen(process.env.LISTEN_PORT)
 console.log('Server listening on port', process.env.LISTEN_PORT)
