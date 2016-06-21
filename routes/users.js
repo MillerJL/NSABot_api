@@ -1,28 +1,33 @@
 var router = require('koa-router')()
-  ;
 
-var channels  = require('../models/users')
-  ;
+var users = require('../models/users')
 
-router
-  .get('/:id?', function* (next) {
-    var findBy = {}
-    if(this.params.id) findBy._id = this.params.id
-    
-    var results = yield users.find(findBy);
+router.get('/:id?', function* (next) {
+  var findBy = {}
+  if (this.params.id) findBy._id = this.params.id
 
-    this.body = yield results;
+  var results = yield users.find(findBy)
+  var formattedResults = {
+    'status': 'success',
+    'data': results,
+    'message': null
+  }
 
-    yield next;
-  })
-  .post('/', function* (next) {
-    yield next;
-  })
-  .put('/', function* (next) {
-    yield next;
-  })
-  .delete('/', function* (next) {
-    yield next;
-  });
+  this.body = formattedResults
 
-module.exports = router;
+  yield next
+})
+
+router.post('/', function* (next) {
+  yield next
+})
+
+router.put('/', function* (next) {
+  yield next
+})
+
+router.delete('/', function* (next) {
+  yield next
+})
+
+module.exports = router
