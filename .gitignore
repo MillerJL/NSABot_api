@@ -5,3 +5,4 @@ node_modules
 examples
 logs
 Gulpfile.js
+rethinkdb_data

@@ -1,142 +1,167 @@
 var router = require('koa-router')()
+var r = require('rethinkdb')
 
-var messages  = require('../models/messages')
-
-// Is this good?
-function* userChannel (params, query) {
-  var results = yield messages.find({
-    'channel': params.c_id,
-    'user': params.u_id
-  }, {
-    limit: query.limit
-  })
-
-  var formattedResults = {
-    'status': 'success',
-    'data': results,
-    'message': null
+class Options {
+  constructor (query, params, table) {
+    this.search = query.search || null
+    this.limit = query.limit || 200
+    this.skip = query.skip || 0
+    this.query = r.table(table)
   }
 
-  return formattedResults
+  GET(conn) {
+    this.query = this.query.limit(parseInt(this.limit))
+                           .skip(parseInt(this.skip))
+    for(var key in this.search) {
+      this.query = this.query.filter(r.row(key).match(this.search[key]))
+    }
+
+    return this.query.run(conn)
+  }
 }
 
-router.get('/channels/:c_id', function* (next) {
-  var results = yield messages.find({
-    'channel': this.params.c_id
-  }, {
-    limit: this.query.limit
-  })
+/**
+ * Get a specific message
+ * Slack ts + channel are unique
+ */
+router.get('/:ts/channels/:channel', function* (next) {
+  var options = new Options(this.query, this.params, 'messages')
+  options.query = options.query.getAll([this.params.ts, this.params.channel], { index: 'full_id' })
 
-  var formattedResults = {
-    'status': 'success',
-    'data': results,
-    'message': null
+  var cursor = yield options.GET(this._rdbConn)
+
+  this.body = {
+    status: 'success',
+    data: { message: yield cursor.toArray() },
+    message: null
   }
 
-  this.body = formattedResults
-
   yield next
 })
 
-router.get('/channels/:c_id/users/:u_id', function* (next) {
-  var results = yield userChannel(this.params, this.query)
-  this.body = results
+/**
+ * Search messages in channel
+ */
+router.get('/channels/:channel', function* (next) {
+  var options = new Options(this.query, this.params, 'messages')
+  options.query = options.query.getAll(this.params.channel, { index: 'channel' })
 
-  yield next
-})
+  var cursor = yield options.GET(this._rdbConn)
 
-router.get('/users/:u_id', function* (next) {
-  var results = yield messages.find({
-    'user': this.params.u_id
-  }, {
-    limit: this.query.limit
-  })
-
-  var formattedResults = {
-    'status': 'success',
-    'data': results,
-    'message': null
+  this.body = {
+    status: 'success',
+    data: { messages: yield cursor.toArray() },
+    message: null
   }
 
-  this.body = formattedResults
-
   yield next
 })
 
-router.get('/users/:u_id/channels/:c_id', function* (next) {
-  var results = yield userChannel(this.params, this.query)
-  this.body = results
+/**
+ * Search messages in channel by user
+ */
+router.get('/channels/:channel/users/:user', function* (next) {
+  var options = new Options(this.query, this.params, 'messages')
+  options.query = options.query.getAll(this.params.channel, { index: 'channel' })
+                               .filter({ user: this.params.user })
 
-  yield next
-})
+  var cursor = yield options.GET(this._rdbConn)
 
-router.get('/:id?', function* (next) {
-  var findBy = {}
-  if(this.params.id) findBy._id = this.params.id
-
-  var results = yield messages.find(
-    findBy
-  , {
-    limit: this.query.limit
-  })
-
-  var formattedResults = {
-    'status': 'success',
-    'data': results,
-    'message': null
+  this.body = {
+    status: 'success',
+    data: { messages: yield cursor.toArray() },
+    message: null
   }
 
-  this.body = formattedResults
+  yield next
+})
+
+/**
+ * Search messages from a specific user across all channels
+ */
+router.get('/users/:user', function* (next) {
+  var options = new Options(this.query, this.params, 'messages')
+  options.query = options.query.getAll(this.params.user, { index: 'user' })
+
+  var cursor = yield options.GET(this._rdbConn)
+
+  this.body = {
+    status: 'success',
+    data: { messages: yield cursor.toArray() },
+    message: null
+  }
 
   yield next
 })
 
+/**
+ * Search messages in channel by user
+ */
+router.get('/users/:user/channels/:channel', function* (next) {
+  var options = new Options(this.query, this.params, 'messages')
+  options.query = options.query.getAll(this.params.user, { index: 'user' })
+                               .filter({ channel: this.params.channel })
+
+  var cursor = yield options.GET(this._rdbConn)
+
+  this.body = {
+    status: 'success',
+    data: { messages: yield cursor.toArray() },
+    message: null
+  }
+
+  yield next
+})
+
+/**
+ * Get all messages
+ */
+router.get('/', function* (next) {
+  var options = new Options(this.query, this.params, 'messages')
+
+  var cursor = yield options.GET(this._rdbConn)
+
+  this.body = {
+    status: 'success',
+    data: { messages: yield cursor.toArray() },
+    message: null
+  }
+
+  yield next
+})
+
+/**
+ * Insert new message
+ */
 router.post('/', function* (next) {
-  var result = yield messages.insert(this.request.body)
+  var result = yield r.table('messages')
+                      .insert(this.request.body).run(this._rdbConn)
 
   this.body = {
-    'status': 'success',
-    'data': {
-      'id': result._id
-    },
-    'message': null
+    status: 'success',
+    data: { message: result },
+    message: 'Record created'
   }
 
   yield next
 })
 
-router.put('/', function* (next) {
-  var message = this.request.body.message
-  var previousMessage = this.request.body.previous_message
+/**
+ * Patch specific message
+ */
+router.patch('/:ts/channels/:channel', function* (next) {
+  var options = new Options(this.query, this.params, 'messages')
+  var update = this.request.body.message
+  update.message_history = r.row('message_history').append(this.request.body.message_history)
 
-  var results = yield messages.update(
-    {
-      'ts': previousMessage.ts
-    },
-    {
-      'type': message.type,
-      'channel': this.request.body.channel,
-      'user': message.user,
-      'text': message.text,
-      'ts': message.ts,
-      'team': message.team,
-      'subtype': this.request.body.subtype,
-      'previous_message': previousMessage
-    })
-
-  // Bad?
+  var cursor = yield options.query
+                            .getAll([this.params.ts, this.params.channel], { index: 'full_id' })
+                            .update(update).run(this._rdbConn)
   this.body = {
-    'success': 'Message Received',
-    'data': {
-      'id': results._id
-    },
-    'message': null
+    status: 'success',
+    data: {},
+    message: 'Record updated'
   }
-
-  yield next
-})
-
-router.delete('/channels/:c_id', function* (next) {
   yield next
 })
 
