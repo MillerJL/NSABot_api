@@ -42,7 +42,7 @@ router.use('/api/v1/channels', channels.routes())
 app.use(router.routes())
 app.use(router.allowedMethods())
 
-/* Database Setup */
+/* Database Setup and App Start */
 db.setup.then( (result) => {
   app.listen(process.env.KOA_PORT)
   console.log('Server listening on port', process.env.KOA_PORT)
