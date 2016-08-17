@@ -1,61 +1,38 @@
-/**
- * Indexes: id (file_id)
- * Maybe should change this. So there is rethink id and slack file id
- */
-
-var router = require('koa-router')()
-var r = require('rethinkdb')
-
-class Options {
-  constructor (query, params) {
-    this.search = query.search || null
-    this.limit = query.limit || 200
-    this.skip = query.skip || 0
-    this.query = r.table('files')
-  }
-
-  GET(conn) {
-    this.query = this.query.limit(parseInt(this.limit))
-                           .skip(parseInt(this.skip))
-    for(var key in this.search) {
-      this.query = this.query.filter(r.row(key).match(this.search[key]))
-    }
-
-    return this.query.run(conn)
-  }
-}
-
+import Router from 'koa-router'
+import r from 'rethinkdb'
+import Options from '../lib/options'
+const router = new Router()
 
 /**
  * Insert a file
  */
-router.post('/', function* (next) {
-  var cursor = yield r.table('files')
-                      .insert(this.request.body).run(this._rdbConn)
-  this.body = {
+router.post('/', async (ctx, next) => {
+  var cursor = await r.table('files')
+                      .insert(ctx.request.body).run(ctx._rdbConn)
+  ctx.body = {
     status: 'success',
     data: {},
     message: 'File added'
   }
-  yield next
+  await next()
 })
 
 /**
  * Get a specific file
  */
-router.get('/:file?', function* (next) {
-  var options = new Options(this.query, this.params)
-  if(this.params.file) options.query = options.query.getAll(this.params.file, { index: 'id' })
+router.get('/:file?', async (ctx, next) => {
+  var options = new Options(ctx.query, ctx.params)
+  if(ctx.params.file) options.query = options.query.getAll(ctx.params.file, { index: 'id' })
 
-  var cursor = yield options.GET(this._rdbConn)
+  var cursor = await options.GET(ctx._rdbConn)
 
-  this.body = {
+  ctx.body = {
     status: 'success',
-    data: { message: yield cursor.toArray() },
+    data: { message: await cursor.toArray() },
     message: null
   }
 
-  yield next
+  await next()
 })
 
 module.exports = router

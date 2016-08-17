@@ -1,168 +1,151 @@
-var router = require('koa-router')()
-var r = require('rethinkdb')
-
-class Options {
-  constructor (query, params, table) {
-    this.search = query.search || null
-    this.limit = query.limit || 200
-    this.skip = query.skip || 0
-    this.query = r.table(table)
-  }
-
-  GET(conn) {
-    this.query = this.query.limit(parseInt(this.limit))
-                           .skip(parseInt(this.skip))
-    for(var key in this.search) {
-      this.query = this.query.filter(r.row(key).match(this.search[key]))
-    }
-
-    return this.query.run(conn)
-  }
-}
+import Router from 'koa-router'
+import r from 'rethinkdb'
+import Options from '../lib/options'
+const router = new Router()
 
 /**
  * Get a specific message
  * Slack ts + channel are unique
  */
-router.get('/:ts/channels/:channel', function* (next) {
+router.get('/:ts/channels/:channel', async (ctx, next) => {
   var options = new Options(this.query, this.params, 'messages')
   options.query = options.query.getAll([this.params.ts, this.params.channel], { index: 'full_id' })
 
-  var cursor = yield options.GET(this._rdbConn)
+  var cursor = await options.GET(this._rdbConn)
 
   this.body = {
     status: 'success',
-    data: { message: yield cursor.toArray() },
+    data: { message: await cursor.toArray() },
     message: null
   }
 
-  yield next
+  await next()
 })
 
 /**
  * Search messages in channel
  */
-router.get('/channels/:channel', function* (next) {
-  var options = new Options(this.query, this.params, 'messages')
-  options.query = options.query.getAll(this.params.channel, { index: 'channel' })
+router.get('/channels/:channel', async (ctx, next) => {
+  var options = new Options(ctx.query, ctx.params, 'messages')
+  options.query = options.query.getAll(ctx.params.channel, { index: 'channel' })
 
-  var cursor = yield options.GET(this._rdbConn)
+  var cursor = await options.GET(ctx._rdbConn)
 
-  this.body = {
+  ctx.body = {
     status: 'success',
-    data: { messages: yield cursor.toArray() },
+    data: { messages: await cursor.toArray() },
     message: null
   }
 
-  yield next
+  await next()
 })
 
 /**
  * Search messages in channel by user
  */
-router.get('/channels/:channel/users/:user', function* (next) {
-  var options = new Options(this.query, this.params, 'messages')
-  options.query = options.query.getAll(this.params.channel, { index: 'channel' })
-                               .filter({ user: this.params.user })
+router.get('/channels/:channel/users/:user', async (ctx, next) => {
+  var options = new Options(ctx.query, ctx.params, 'messages')
+  options.query = options.query.getAll(ctx.params.channel, { index: 'channel' })
+                               .filter({ user: ctx.params.user })
 
-  var cursor = yield options.GET(this._rdbConn)
+  var cursor = await options.GET(ctx._rdbConn)
 
-  this.body = {
+  ctx.body = {
     status: 'success',
-    data: { messages: yield cursor.toArray() },
+    data: { messages: await cursor.toArray() },
     message: null
   }
 
-  yield next
+  await next()
 })
 
 /**
  * Search messages from a specific user across all channels
  */
-router.get('/users/:user', function* (next) {
-  var options = new Options(this.query, this.params, 'messages')
-  options.query = options.query.getAll(this.params.user, { index: 'user' })
+router.get('/users/:user', async (ctx, next) => {
+  var options = new Options(ctx.query, ctx.params, 'messages')
+  options.query = options.query.getAll(ctx.params.user, { index: 'user' })
 
-  var cursor = yield options.GET(this._rdbConn)
+  var cursor = await options.GET(ctx._rdbConn)
 
-  this.body = {
+  ctx.body = {
     status: 'success',
-    data: { messages: yield cursor.toArray() },
+    data: { messages: await cursor.toArray() },
     message: null
   }
 
-  yield next
+  await next()
 })
 
 /**
  * Search messages in channel by user
  */
-router.get('/users/:user/channels/:channel', function* (next) {
-  var options = new Options(this.query, this.params, 'messages')
-  options.query = options.query.getAll(this.params.user, { index: 'user' })
-                               .filter({ channel: this.params.channel })
+router.get('/users/:user/channels/:channel', async (ctx, next) => {
+  var options = new Options(ctx.query, ctx.params, 'messages')
+  options.query = options.query.getAll(ctx.params.user, { index: 'user' })
+                               .filter({ channel: ctx.params.channel })
 
-  var cursor = yield options.GET(this._rdbConn)
+  var cursor = await options.GET(ctx._rdbConn)
 
-  this.body = {
+  ctx.body = {
     status: 'success',
-    data: { messages: yield cursor.toArray() },
+    data: { messages: await cursor.toArray() },
     message: null
   }
 
-  yield next
+  await next()
 })
 
 /**
  * Get all messages
  */
-router.get('/', function* (next) {
-  var options = new Options(this.query, this.params, 'messages')
+router.get('/', async (ctx, next) => {
+  var options = new Options(ctx.query, ctx.params, 'messages')
 
-  var cursor = yield options.GET(this._rdbConn)
+  var cursor = await options.GET(ctx._rdbConn)
 
-  this.body = {
+  ctx.body = {
     status: 'success',
-    data: { messages: yield cursor.toArray() },
+    data: { messages: await cursor.toArray() },
     message: null
   }
 
-  yield next
+  await next()
 })
 
 /**
  * Insert new message
  */
-router.post('/', function* (next) {
-  var result = yield r.table('messages')
-                      .insert(this.request.body).run(this._rdbConn)
+router.post('/', async (ctx, next) => {
+  var result = await r.table('messages')
+                      .insert(ctx.request.body).run(ctx._rdbConn)
 
-  this.body = {
+  ctx.body = {
     status: 'success',
     data: { message: result },
     message: 'Record created'
   }
 
-  yield next
+  await next()
 })
 
 /**
  * Patch specific message
  */
-router.patch('/:ts/channels/:channel', function* (next) {
-  var options = new Options(this.query, this.params, 'messages')
-  var update = this.request.body.message
-  update.message_history = r.row('message_history').append(this.request.body.message_history)
+router.patch('/:ts/channels/:channel', async (ctx, next) => {
+  var options = new Options(ctx.query, ctx.params, 'messages')
+  var update = ctx.request.body.message
+  update.message_history = r.row('message_history').append(ctx.request.body.message_history)
 
-  var cursor = yield options.query
-                            .getAll([this.params.ts, this.params.channel], { index: 'full_id' })
-                            .update(update).run(this._rdbConn)
-  this.body = {
+  var cursor = await options.query
+                            .getAll([ctx.params.ts, ctx.params.channel], { index: 'full_id' })
+                            .update(update).run(ctx._rdbConn)
+  ctx.body = {
     status: 'success',
     data: {},
     message: 'Record updated'
   }
-  yield next
+  await next()
 })
 
-module.exports = router
+export default router

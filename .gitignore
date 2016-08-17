@@ -6,3 +6,4 @@ examples
 logs
 Gulpfile.js
 rethinkdb_data
+config/default.json

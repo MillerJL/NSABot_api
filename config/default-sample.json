@@ -1,0 +1,7 @@
+{
+  "dbConfig": {
+    "host": "host",
+    "port": "db_port",
+    "dbName": "db_name"
+  }
+}

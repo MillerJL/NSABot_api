@@ -1,43 +1,25 @@
-var router = require('koa-router')()
-var r = require('rethinkdb')
-
-class Options {
-  constructor (query, params, table) {
-    this.search = query.search || null
-    this.limit = query.limit || 200
-    this.skip = query.skip || 0
-    this.query = r.table(table)
-  }
-
-  GET(conn) {
-    this.query = this.query.limit(parseInt(this.limit))
-                           .skip(parseInt(this.skip))
-    for(var key in this.search) {
-      this.query = this.query.filter(r.row(key).match(this.search[key]))
-    }
-
-    return this.query.run(conn)
-  }
-}
-
+import Router from 'koa-router'
+import r from 'rethinkdb'
+import Options from '../lib/options'
+const router = new Router()
 
 /**
  * Get a specific message
  * Slack ts + channel are unique
  */
-router.get('/:channel', function* (next) {
-  var options = new Options(this.query, this.params, 'channels')
-  options.query = options.query.getAll(this.params.channel, { index: 'id' })
+router.get('/:channel?', async (ctx, next) => {
+  var options = new Options(ctx.query, ctx.params, 'channels')
+  if(ctx.params.file) options.query = options.query.getAll(ctx.params.channel, { index: 'id' })
 
-  var cursor = yield options.GET(this._rdbConn)
+  var cursor = await options.GET(ctx._rdbConn)
 
-  this.body = {
+  ctx.body = {
     status: 'success',
-    data: { message: yield cursor.toArray() },
+    data: { message: await cursor.toArray() },
     message: null
   }
 
-  yield next
+  await next()
 })
 
 module.exports = router

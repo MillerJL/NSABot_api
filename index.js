@@ -1,38 +1,34 @@
-require('dotenv').config()
-
-var koa = require('koa')
-var logger = require('koa-logger')
-var router = require('koa-router')()
-var bodyParser = require('koa-bodyparser')
-var cache = require('memory-cache')
-
-var db = require('./lib/db.js')
-
-var app = koa()
+import Koa from 'koa'
+import logger from 'koa-logger'
+import Router from 'koa-router'
+import bodyParser from 'koa-bodyparser'
+import cache from 'memory-cache'
+import * as db from './lib/db.js'
+const app = new Koa()
+const router = new Router()
 require('koa-qs')(app)
 
 /* Error handler */
-app.use(function* (next) {
+app.use(async (ctx, next) => {
   try {
-    yield next
+    await next()
   } catch (err) {
-    this.status = err.status || 500
-    this.body = err.message
-    this.app.emit('error', err, this)
+    ctx.status = 500
+    ctx.body = err.message
+    ctx.app.emit('error', err, ctx)
   }
 })
 
-app.use(db.createConnection)
-
 /* Middleware */
+app.use(db.createConnection)
 app.use(logger())
 app.use(bodyParser())
 
 /* Route middleware */
-var messages = require('./routes/messages')
-var reactions = require('./routes/reactions')
-var files = require('./routes/files')
-var channels = require('./routes/channels')
+import messages from './routes/messages'
+import reactions from './routes/reactions'
+import files from './routes/files'
+import channels from './routes/channels'
 
 router.use('/api/v1/messages', messages.routes())
 router.use('/api/v1/reactions', reactions.routes())
@@ -43,9 +39,9 @@ app.use(router.routes())
 app.use(router.allowedMethods())
 
 /* Database Setup and App Start */
-db.setup.then( (result) => {
-  app.listen(process.env.KOA_PORT)
-  console.log('Server listening on port', process.env.KOA_PORT)
+db.setup().then( (result) => {
+  app.listen(3000, () => console.log('Server listening on port', 3000))
 }).catch( (err) => {
-  console.log('Database failed to setup correctly.. App not starting');
+  console.log(err);
+  console.log('Error starting app...')
 })
