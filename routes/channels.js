@@ -4,8 +4,7 @@ import Options from '../lib/options'
 const router = new Router()
 
 /**
- * Get a specific message
- * Slack ts + channel are unique
+ * Get a channel or specific channels
  */
 router.get('/:channel?', async (ctx, next) => {
   var options = new Options(ctx.query, ctx.params, 'channels')

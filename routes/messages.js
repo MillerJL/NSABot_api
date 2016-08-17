@@ -5,7 +5,6 @@ const router = new Router()
 
 /**
  * Get a specific message
- * Slack ts + channel are unique
  */
 router.get('/:ts/channels/:channel', async (ctx, next) => {
   var options = new Options(this.query, this.params, 'messages')

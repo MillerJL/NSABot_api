@@ -5,9 +5,8 @@ const router = new Router()
 
 /**
  * Insert a new message reaction
- * It's a new reaction, but modifying existing message data. Should ctx be patch?
  */
-router.post('/messages/:ts/channels/:channel', async (ctx, next) => {
+router.patch('/messages/:ts/channels/:channel', async (ctx, next) => {
   var update = ctx.request.body
 
   var cursor = await r.table('messages')
@@ -50,9 +49,8 @@ router.delete('/messages/:ts/channels/:channel', async (ctx, next) => {
 
 /**
  * Insert a new file reaction
- * It's a new reaction, but modifying existing file data. Should ctx be patch?
  */
-router.post('/files/:file', async (ctx, next) => {
+router.patch('/files/:file', async (ctx, next) => {
   var update = ctx.request.body
 
   var cursor = await r.table('files')
