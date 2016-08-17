@@ -7,10 +7,10 @@ const router = new Router()
  * Get a channel or specific channels
  */
 router.get('/:channel?', async (ctx, next) => {
-  var options = new Options(ctx.query, ctx.params, 'channels')
+  const options = new Options(ctx.query, ctx.params, 'channels')
   if(ctx.params.file) options.query = options.query.getAll(ctx.params.channel, { index: 'id' })
 
-  var cursor = await options.GET(ctx._rdbConn)
+  const cursor = await options.GET(ctx._rdbConn)
 
   ctx.body = {
     status: 'success',

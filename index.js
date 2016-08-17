@@ -41,7 +41,4 @@ app.use(router.allowedMethods())
 /* Database Setup and App Start */
 db.setup().then( (result) => {
   app.listen(3000, () => console.log('Server listening on port', 3000))
-}).catch( (err) => {
-  console.log(err);
-  console.log('Error starting app...')
-})
+}).catch(::console.log)

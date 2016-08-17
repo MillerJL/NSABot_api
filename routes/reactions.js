@@ -7,9 +7,9 @@ const router = new Router()
  * Insert a new message reaction
  */
 router.patch('/messages/:ts/channels/:channel', async (ctx, next) => {
-  var update = ctx.request.body
+  const update = ctx.request.body
 
-  var cursor = await r.table('messages')
+  const cursor = await r.table('messages')
                       .getAll([ctx.params.ts, ctx.params.channel], { index: 'full_id' })
                       .update( (message) => {
                         return { reactions: message('reactions').default([]).append(update)}
@@ -27,10 +27,10 @@ router.patch('/messages/:ts/channels/:channel', async (ctx, next) => {
  * Delete a reaction from a particular message
  */
 router.delete('/messages/:ts/channels/:channel', async (ctx, next) => {
-  var params = ctx.params
-  var body = ctx.request.body
+  const params = ctx.params
+  const body = ctx.request.body
 
-  var cursor = await r.db('sdp_test1').table('messages').getAll(
+  const cursor = await r.db('sdp_test1').table('messages').getAll(
                         [params.ts, params.channel], { index: 'full_id' }
                       ).update({
                         reactions: r.row('reactions').filter(function (doc) {
@@ -51,9 +51,9 @@ router.delete('/messages/:ts/channels/:channel', async (ctx, next) => {
  * Insert a new file reaction
  */
 router.patch('/files/:file', async (ctx, next) => {
-  var update = ctx.request.body
+  const update = ctx.request.body
 
-  var cursor = await r.table('files')
+  const cursor = await r.table('files')
                       .getAll(ctx.params.file, { index: 'id' })
                       .update( (message) => {
                         return { reactions: message('reactions').default([]).append(update)}
@@ -71,10 +71,10 @@ router.patch('/files/:file', async (ctx, next) => {
  * Delete a reaction from a particular file
  */
 router.delete('/files/:file', async (ctx, next) => {
-  var params = ctx.params
-  var body = ctx.request.body
+  const params = ctx.params
+  const body = ctx.request.body
 
-  var cursor = await r.table('files')
+  const cursor = await r.table('files')
                       .getAll(ctx.params.file, { index: 'id' })
                       .update({
                         reactions: r.row('reactions').filter(function (doc) {
@@ -91,4 +91,4 @@ router.delete('/files/:file', async (ctx, next) => {
   await next()
 })
 
-module.exports = router
+export default router

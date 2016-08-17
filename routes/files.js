@@ -7,7 +7,7 @@ const router = new Router()
  * Insert a file
  */
 router.post('/', async (ctx, next) => {
-  var cursor = await r.table('files')
+  const cursor = await r.table('files')
                       .insert(ctx.request.body).run(ctx._rdbConn)
   ctx.body = {
     status: 'success',
@@ -21,10 +21,10 @@ router.post('/', async (ctx, next) => {
  * Get a specific file
  */
 router.get('/:file?', async (ctx, next) => {
-  var options = new Options(ctx.query, ctx.params)
+  const options = new Options(ctx.query, ctx.params)
   if(ctx.params.file) options.query = options.query.getAll(ctx.params.file, { index: 'id' })
 
-  var cursor = await options.GET(ctx._rdbConn)
+  const cursor = await options.GET(ctx._rdbConn)
 
   ctx.body = {
     status: 'success',
