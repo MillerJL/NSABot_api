@@ -1,6 +1,6 @@
 import Router from 'koa-router'
 import r from 'rethinkdb'
-import Options from '../lib/options'
+// import Options from '../lib/options'
 const router = new Router()
 
 /**

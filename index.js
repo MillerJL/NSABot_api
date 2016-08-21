@@ -14,7 +14,11 @@ app.use(async (ctx, next) => {
     await next()
   } catch (err) {
     ctx.status = 500
-    ctx.body = err.message
+    ctx.body = {
+      status: 'failure',
+      data: {},
+      message: err.message
+    }
     ctx.app.emit('error', err, ctx)
   }
 })
@@ -38,7 +42,9 @@ router.use('/api/v1/channels', channels.routes())
 app.use(router.routes())
 app.use(router.allowedMethods())
 
+app.use(db.closeConnection)
+
 /* Database Setup and App Start */
 db.setup().then( (result) => {
-  app.listen(3000, () => console.log('Server listening on port', 3000))
+  app.listen(3000, ::console.log('Server listening on port', 3000))
 }).catch(::console.log)

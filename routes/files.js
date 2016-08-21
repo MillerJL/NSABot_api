@@ -1,6 +1,6 @@
 import Router from 'koa-router'
 import r from 'rethinkdb'
-import Options from '../lib/options'
+// import Options from '../lib/options'
 const router = new Router()
 
 /**
@@ -8,7 +8,7 @@ const router = new Router()
  */
 router.post('/', async (ctx, next) => {
   const cursor = await r.table('files')
-                      .insert(ctx.request.body).run(ctx._rdbConn)
+                        .insert(ctx.request.body).run(ctx._rdbConn)
   ctx.body = {
     status: 'success',
     data: {},
@@ -18,7 +18,7 @@ router.post('/', async (ctx, next) => {
 })
 
 /**
- * Get a specific file
+ * Get all files or a specific file
  */
 router.get('/:file?', async (ctx, next) => {
   const options = new Options(ctx.query, ctx.params)

@@ -1,20 +1,17 @@
 import Router from 'koa-router'
 import r from 'rethinkdb'
-import Options from '../lib/options'
+import { Message } from '../models/Messages'
 const router = new Router()
 
 /**
- * Get a specific message
+ * Specific message
  */
 router.get('/:ts/channels/:channel', async (ctx, next) => {
-  const options = new Options(ctx.query, ctx.params, 'messages')
-  options.query = options.query.getAll([ctx.params.ts, ctx.params.channel], { index: 'full_id' })
-
-  const cursor = await options.GET(ctx._rdbConn)
-
   ctx.body = {
     status: 'success',
-    data: { message: await cursor.toArray() },
+    data: {
+      message: await new Message(ctx).findBySlackId()
+    },
     message: null
   }
 
@@ -22,17 +19,14 @@ router.get('/:ts/channels/:channel', async (ctx, next) => {
 })
 
 /**
- * Search messages in channel
+ * Messages in channel
  */
 router.get('/channels/:channel', async (ctx, next) => {
-  const options = new Options(ctx.query, ctx.params, 'messages')
-  options.query = options.query.getAll(ctx.params.channel, { index: 'channel' })
-
-  const cursor = await options.GET(ctx._rdbConn)
-
   ctx.body = {
     status: 'success',
-    data: { messages: await cursor.toArray() },
+    data: {
+      message: await new Message(ctx).findByChannel()
+    },
     message: null
   }
 
@@ -40,18 +34,14 @@ router.get('/channels/:channel', async (ctx, next) => {
 })
 
 /**
- * Search messages in channel by user
+ * Messages in channel by user
  */
 router.get('/channels/:channel/users/:user', async (ctx, next) => {
-  const options = new Options(ctx.query, ctx.params, 'messages')
-  options.query = options.query.getAll(ctx.params.channel, { index: 'channel' })
-                               .filter({ user: ctx.params.user })
-
-  const cursor = await options.GET(ctx._rdbConn)
-
   ctx.body = {
     status: 'success',
-    data: { messages: await cursor.toArray() },
+    data: {
+      messages: await new Message(ctx).findByUserChannel()
+    },
     message: null
   }
 
@@ -59,17 +49,14 @@ router.get('/channels/:channel/users/:user', async (ctx, next) => {
 })
 
 /**
- * Search messages from a specific user across all channels
+ * Messages by user
  */
 router.get('/users/:user', async (ctx, next) => {
-  const options = new Options(ctx.query, ctx.params, 'messages')
-  options.query = options.query.getAll(ctx.params.user, { index: 'user' })
-
-  const cursor = await options.GET(ctx._rdbConn)
-
   ctx.body = {
     status: 'success',
-    data: { messages: await cursor.toArray() },
+    data: {
+      messages: await new Message(ctx).findByUser()
+    },
     message: null
   }
 
@@ -77,18 +64,14 @@ router.get('/users/:user', async (ctx, next) => {
 })
 
 /**
- * Search messages in channel by user
+ * Messages by user in channel (unnecessary, but whatever)
  */
 router.get('/users/:user/channels/:channel', async (ctx, next) => {
-  const options = new Options(ctx.query, ctx.params, 'messages')
-  options.query = options.query.getAll(ctx.params.user, { index: 'user' })
-                               .filter({ channel: ctx.params.channel })
-
-  const cursor = await options.GET(ctx._rdbConn)
-
   ctx.body = {
     status: 'success',
-    data: { messages: await cursor.toArray() },
+    data: {
+      messages: await new Message(ctx).findByUserChannel()
+    },
     message: null
   }
 
@@ -96,16 +79,14 @@ router.get('/users/:user/channels/:channel', async (ctx, next) => {
 })
 
 /**
- * Get all messages
+ * All messages
  */
 router.get('/', async (ctx, next) => {
-  const options = new Options(ctx.query, ctx.params, 'messages')
-
-  const cursor = await options.GET(ctx._rdbConn)
-
   ctx.body = {
     status: 'success',
-    data: { messages: await cursor.toArray() },
+    data: {
+      messages: await new Message(ctx).findAll()
+    },
     message: null
   }
 
@@ -116,12 +97,9 @@ router.get('/', async (ctx, next) => {
  * Insert new message
  */
 router.post('/', async (ctx, next) => {
-  const result = await r.table('messages')
-                      .insert(ctx.request.body).run(ctx._rdbConn)
-
   ctx.body = {
     status: 'success',
-    data: { message: result },
+    data: { message: await new Message(ctx).insert() },
     message: 'Record created'
   }
 
@@ -131,19 +109,15 @@ router.post('/', async (ctx, next) => {
 /**
  * Patch specific message
  */
+ // Vulnerable. Use some kind of object validator to make sure this is gucci.
+ // Nothing besides NSABot should have access to this method though.
 router.patch('/:ts/channels/:channel', async (ctx, next) => {
-  const options = new Options(ctx.query, ctx.params, 'messages')
-  const update = ctx.request.body.message
-  update.message_history = r.row('message_history').append(ctx.request.body.message_history)
-
-  const cursor = await options.query
-                            .getAll([ctx.params.ts, ctx.params.channel], { index: 'full_id' })
-                            .update(update).run(ctx._rdbConn)
   ctx.body = {
     status: 'success',
-    data: {},
+    data: { message: await new Message(ctx).update() },
     message: 'Record updated'
   }
+  
   await next()
 })
 

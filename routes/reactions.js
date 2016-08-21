@@ -1,6 +1,6 @@
 import Router from 'koa-router'
 import r from 'rethinkdb'
-import Options from '../lib/options'
+// import Options from '../lib/options'
 const router = new Router()
 
 /**
@@ -10,10 +10,10 @@ router.patch('/messages/:ts/channels/:channel', async (ctx, next) => {
   const update = ctx.request.body
 
   const cursor = await r.table('messages')
-                      .getAll([ctx.params.ts, ctx.params.channel], { index: 'full_id' })
-                      .update( (message) => {
-                        return { reactions: message('reactions').default([]).append(update)}
-                      }).run(ctx._rdbConn)
+                        .getAll([ctx.params.ts, ctx.params.channel], { index: 'full_id' })
+                        .update( (message) => {
+                          return { reactions: message('reactions').default([]).append(update)}
+                        }).run(ctx._rdbConn)
   ctx.body = {
     status: 'success',
     data: {},
@@ -30,13 +30,13 @@ router.delete('/messages/:ts/channels/:channel', async (ctx, next) => {
   const params = ctx.params
   const body = ctx.request.body
 
-  const cursor = await r.db('sdp_test1').table('messages').getAll(
-                        [params.ts, params.channel], { index: 'full_id' }
-                      ).update({
-                        reactions: r.row('reactions').filter(function (doc) {
-	                         return doc('reaction').eq(body.reaction).and(doc('user').eq(body.user)).not()
-                         })
-                      }).run(ctx._rdbConn)
+  const cursor = await r.table('messages')
+                        .getAll([params.ts, params.channel], { index: 'full_id' })
+                        .update({
+                          reactions: r.row('reactions').filter(function (doc) {
+                            return doc('reaction').eq(body.reaction).and(doc('user').eq(body.user)).not()
+                          })
+                        }).run(ctx._rdbConn)
 
   ctx.body = {
     status: 'success',
@@ -54,10 +54,10 @@ router.patch('/files/:file', async (ctx, next) => {
   const update = ctx.request.body
 
   const cursor = await r.table('files')
-                      .getAll(ctx.params.file, { index: 'id' })
-                      .update( (message) => {
-                        return { reactions: message('reactions').default([]).append(update)}
-                      }).run(ctx._rdbConn)
+                        .getAll(ctx.params.file, { index: 'id' })
+                        .update( (message) => {
+                          return { reactions: message('reactions').default([]).append(update)}
+                        }).run(ctx._rdbConn)
   ctx.body = {
     status: 'success',
     data: {},
@@ -75,12 +75,12 @@ router.delete('/files/:file', async (ctx, next) => {
   const body = ctx.request.body
 
   const cursor = await r.table('files')
-                      .getAll(ctx.params.file, { index: 'id' })
-                      .update({
-                        reactions: r.row('reactions').filter(function (doc) {
-	                         return doc('reaction').eq(body.reaction).and(doc('user').eq(body.user)).not()
-                         })
-                      }).run(ctx._rdbConn)
+                        .getAll(ctx.params.file, { index: 'id' })
+                        .update({
+                          reactions: r.row('reactions').filter(function (doc) {
+                            return doc('reaction').eq(body.reaction).and(doc('user').eq(body.user)).not()
+                          })
+                        }).run(ctx._rdbConn)
 
   ctx.body = {
     status: 'success',
