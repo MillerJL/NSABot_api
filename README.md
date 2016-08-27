@@ -11,6 +11,8 @@ Do NOT share or publish sensitive info in your .env (SLACK_TOKEN!)
 * Copy .env-sample to .env and modify contents to match necessary environment variables
 * Run rethinkdb and setup db/collections if necessary
 * npm install
+* babel
+* ???
 * Use with [NSABot](https://github.com/MillerJL/NSABot)
 
 ## Usage
@@ -22,7 +24,7 @@ Problems will almost definitely occur if data is added, modified, or removed out
 
 ## Future Plans
 - [ ] Secure all api interactions
-- [ ] Use db.js to setup db connections, tables/indexes
+- [x] Use db.js to setup db connections, tables/indexes
 - [x] Implement separate user/channel dbs
 - [ ] ~~Implement soft delete functionality for messages/channels/users~~
 - [x] Add more query option searching (offset, searching, etc)

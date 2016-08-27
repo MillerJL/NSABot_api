@@ -40,7 +40,7 @@ export class Message extends Query {
       run = true
     } = options
 
-    this.whitelist = Joi.object().keys({
+    this.whitelist = Joi.object().options({ stripUnknown: true }).keys({
       message: {
         text: Joi.string().required(),
         edited: {
@@ -54,7 +54,7 @@ export class Message extends Query {
 
     try {
       const validatedObject = await this.validate()
-      const update =  this.body.message
+      const update = validatedObject
       update.message_history = r.row('message_history').append(this.body.message_history)
 
       this.query = this.query
@@ -65,7 +65,7 @@ export class Message extends Query {
     } catch (err) {
       console.log(err)
 
-      throw new Error('Error updating message in database. Incorrect message update format supplied.')
+      throw new Error('Error updating message in database.')
     }
   }
 
@@ -74,14 +74,14 @@ export class Message extends Query {
       run = true
     } = options
 
-    this.whitelist = Joi.object().keys({
-      type: Joi.string(),
-      channel: Joi.string().length(9),
-      user: Joi.string().length(9),
-      text: Joi.string(),
-      ts: Joi.string().length(17),
-      team: Joi.string().length(9),
-      message_history: Joi.array()
+    this.whitelist = Joi.object().options({ stripUnknown: true }).keys({
+      channel: Joi.string().length(9).required(),
+      inviter: Joi.string().length(9),
+      user: Joi.string().length(9).required(),
+      text: Joi.string().required(),
+      ts: Joi.string().length(17).required(),
+      team: Joi.string().length(9).required(),
+      message_history: Joi.array().required()
     })
 
     try {
@@ -92,7 +92,7 @@ export class Message extends Query {
     } catch (err) {
       console.log(err)
 
-      throw new Error('Error inserting data into database. Incorrect message format.')
+      throw new Error('Error inserting data into database.')
     }
   }
 }

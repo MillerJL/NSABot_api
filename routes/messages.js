@@ -99,7 +99,9 @@ router.get('/', async (ctx, next) => {
 router.post('/', async (ctx, next) => {
   ctx.body = {
     status: 'success',
-    data: { message: await new Message(ctx).insert() },
+    data: {
+      message: await new Message(ctx).insert()
+    },
     message: 'Record created'
   }
 
@@ -114,10 +116,12 @@ router.post('/', async (ctx, next) => {
 router.patch('/:ts/channels/:channel', async (ctx, next) => {
   ctx.body = {
     status: 'success',
-    data: { message: await new Message(ctx).update() },
+    data: {
+      message: await new Message(ctx).update()
+    },
     message: 'Record updated'
   }
-  
+
   await next()
 })
 

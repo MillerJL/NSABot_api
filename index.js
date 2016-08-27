@@ -8,6 +8,13 @@ const app = new Koa()
 const router = new Router()
 require('koa-qs')(app)
 
+/* Database Setup and Server start */
+async function setupAndStart () {
+  if(await db.setup())
+    app.listen(3000, ::console.log('Server listening on port', 3000))
+}
+setupAndStart()
+
 /* Error handler */
 app.use(async (ctx, next) => {
   try {
@@ -44,7 +51,6 @@ app.use(router.allowedMethods())
 
 app.use(db.closeConnection)
 
-/* Database Setup and App Start */
-db.setup().then( (result) => {
-  app.listen(3000, ::console.log('Server listening on port', 3000))
-}).catch(::console.log)
+// db.setup().then( (result) => {
+//   app.listen(3000, ::console.log('Server listening on port', 3000))
+// }).catch(::console.log)
