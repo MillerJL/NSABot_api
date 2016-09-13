@@ -1,19 +1,20 @@
 import Router from 'koa-router'
 import r from 'rethinkdb'
-// import Options from '../lib/options'
+import { File } from '../models/files'
 const router = new Router()
 
 /**
  * Insert a file
  */
 router.post('/', async (ctx, next) => {
-  const cursor = await r.table('files')
-                        .insert(ctx.request.body).run(ctx._rdbConn)
   ctx.body = {
     status: 'success',
-    data: {},
-    message: 'File added'
+    data: {
+      message: await new File(ctx).insert()
+    },
+    message: 'File record created'
   }
+
   await next()
 })
 
@@ -21,14 +22,13 @@ router.post('/', async (ctx, next) => {
  * Get all files or a specific file
  */
 router.get('/:file?', async (ctx, next) => {
-  const options = new Options(ctx.query, ctx.params)
-  if(ctx.params.file) options.query = options.query.getAll(ctx.params.file, { index: 'id' })
-
-  const cursor = await options.GET(ctx._rdbConn)
+  const file = new File(ctx)
 
   ctx.body = {
     status: 'success',
-    data: { message: await cursor.toArray() },
+    data: {
+      messages: (ctx.params.file) ? await file.findById() : await file.findAll()
+    },
     message: null
   }
 

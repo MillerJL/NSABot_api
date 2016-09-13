@@ -2,6 +2,9 @@ import r from 'rethinkdb'
 import promisify from '../lib/Promisify'
 import Joi from 'joi'
 
+/**
+ *
+ */
 export class Query {
   constructor (table, ctx) {
     this.query = r.table(table)
@@ -13,6 +16,9 @@ export class Query {
     this.whitelist = []
   }
 
+  /**
+   *
+   */
   lazyMatch () {
     for(let key in this.qs.search) {
       this.query = this.query.filter(r.row(key).match(this.qs.search[key]))
@@ -21,12 +27,18 @@ export class Query {
     return this
   }
 
+  /**
+   *
+   */
   page () {
     this.query = this.query.limit(parseInt(this.qs.limit || 200)).skip(parseInt(this.qs.skip || 0))
 
     return this
   }
 
+  /**
+   *
+   */
   optionsFindBy (options = {}) {
     const {
       page = true,
@@ -42,12 +54,18 @@ export class Query {
     return (run) ? this.run() : this
   }
 
+  /**
+   *
+   */
   validate (joiObject) {
     const validate = promisify(Joi.validate)
 
     return validate(this.body, this.whitelist)
   }
 
+  /**
+   *
+   */
   run () {
     return this.query.run(this.conn).then( (cursor) => { return cursor.toArray() })
   }

@@ -29,7 +29,7 @@ router.post('/', async (ctx, next) => {
     data: {
       message: await new Channel(ctx).insert()
     },
-    message: 'Record created'
+    message: 'Channel record created'
   }
 
   await next()
@@ -48,18 +48,51 @@ router.patch('/:channel', async (ctx, next) => {
     },
     message: 'Channel info updated'
   }
+
+  await next()
 })
 
 /**
  * Updates or creates all channel info. Used when bot joins a new channel
  */
 router.put('/:channel', async (ctx, next) => {
+  const result = await new Channel(ctx).updateChannelInfo()
+
+  console.log(result);
   ctx.body = {
     status: 'success',
     data: {
-      message: await new Channel(ctx).updateChannelInfo()
+      message: result
     },
     message: 'Channel updated'
+  }
+
+  await next()
+})
+
+/**
+ * Adds a user to the channel members list
+ */
+router.patch('/:channel/users/:user', async (ctx, next) => {
+  ctx.body = {
+    status: 'success',
+    data: {
+      message: await new Channel(ctx).addUser()
+    }
+  }
+
+  await next()
+})
+
+/**
+ * Removes a user from the channel members list
+ */
+router.delete('/:channel/users/:user', async (ctx, next) => {
+  ctx.body = {
+    status: 'success',
+    data: {
+      message: await new Channel(ctx).removeUser()
+    }
   }
 
   await next()

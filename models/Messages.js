@@ -2,39 +2,60 @@ import r from 'rethinkdb'
 import { Query } from './Query'
 import Joi from 'joi'
 
+/**
+ *
+ */
 export class Message extends Query {
   constructor (ctx) {
     super('messages', ctx)
   }
 
+  /**
+   *
+   */
   findAll (options) {
     return this.optionsFindBy(options)
   }
 
+  /**
+   *
+   */
   findBySlackId (options) {
     this.query = this.query.getAll([ this.params.ts, this.params.channel ], { index: 'full_id' })
 
     return this.optionsFindBy(options)
   }
 
+  /**
+   *
+   */
   findByUser (options) {
     this.query = this.query.getAll(this.params.user, { index: 'user' })
 
     return this.optionsFindBy(options)
   }
 
+  /**
+   *
+   */
   findByChannel (options) {
     this.query = this.query.getAll(this.params.channel, { index: 'channel' })
 
     return this.optionsFindBy(options)
   }
 
+  /**
+   *
+   */
   findByUserChannel (options) {
     this.query = this.query.getAll(this.params.channel, { index: 'channel' }).filter({ user: this.params.user })
 
     return this.optionsFindBy(options)
   }
 
+  /**
+   *
+   */
   async update (options = {}) {
     const {
       run = true
@@ -69,6 +90,9 @@ export class Message extends Query {
     }
   }
 
+  /**
+   *
+   */
   async insert (options = {}) {
     const {
       run = true

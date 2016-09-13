@@ -1,22 +1,17 @@
 import Router from 'koa-router'
 import r from 'rethinkdb'
-// import Options from '../lib/options'
+import { Reaction } from '../models/Reactions'
 const router = new Router()
 
 /**
  * Insert a new message reaction
  */
 router.patch('/messages/:ts/channels/:channel', async (ctx, next) => {
-  const update = ctx.request.body
-
-  const cursor = await r.table('messages')
-                        .getAll([ctx.params.ts, ctx.params.channel], { index: 'full_id' })
-                        .update( (message) => {
-                          return { reactions: message('reactions').default([]).append(update)}
-                        }).run(ctx._rdbConn)
   ctx.body = {
     status: 'success',
-    data: {},
+    data: {
+      message: await new Reaction({ ctx: ctx }).insertMessageReaction()
+    },
     message: 'Reaction added'
   }
 
@@ -27,16 +22,7 @@ router.patch('/messages/:ts/channels/:channel', async (ctx, next) => {
  * Delete a reaction from a particular message
  */
 router.delete('/messages/:ts/channels/:channel', async (ctx, next) => {
-  const params = ctx.params
-  const body = ctx.request.body
-
-  const cursor = await r.table('messages')
-                        .getAll([params.ts, params.channel], { index: 'full_id' })
-                        .update({
-                          reactions: r.row('reactions').filter(function (doc) {
-                            return doc('reaction').eq(body.reaction).and(doc('user').eq(body.user)).not()
-                          })
-                        }).run(ctx._rdbConn)
+  let result = await new Reaction({ ctx: ctx }).deleteMessageReaction()
 
   ctx.body = {
     status: 'success',
@@ -51,16 +37,12 @@ router.delete('/messages/:ts/channels/:channel', async (ctx, next) => {
  * Insert a new file reaction
  */
 router.patch('/files/:file', async (ctx, next) => {
-  const update = ctx.request.body
-
-  const cursor = await r.table('files')
-                        .getAll(ctx.params.file, { index: 'id' })
-                        .update( (message) => {
-                          return { reactions: message('reactions').default([]).append(update)}
-                        }).run(ctx._rdbConn)
+  console.log(ctx.request.body);
   ctx.body = {
     status: 'success',
-    data: {},
+    data: {
+      message: await new Reaction({ ctx: ctx , table: 'files' }).insertFileReaction()
+    },
     message: 'Reaction added'
   }
 
